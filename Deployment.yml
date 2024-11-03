@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tomcat-deployment
+  labels:
+    app: tomcat
+spec:
+  replicas: 3  # Number of replicas (Pods)
+  selector:
+    matchLabels:
+      app: tomcat
+  template:
+    metadata:
+      labels:
+        app: tomcat
+    spec:
+      containers:
+      - name: tomcat
+        image: tomcat:9.0  # Specify the Tomcat image version
+        ports:
+        - containerPort: 8080  # Port that Tomcat listens on
+        env:
+        - name: JAVA_OPTS
+          value: "-Xms512m -Xmx1024m"  # Optional Java options
+        volumeMounts:
+        - name: tomcat-volume
+          mountPath: /usr/local/tomcat/webapps  # Mount path for web applications
+      volumes:
+      - name: tomcat-volume
+        emptyDir: {}  # This is an example volume; you may want to use a PersistentVolume
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat-service
+spec:
+  type: NodePort  # Or ClusterIP, NodePort, etc.
+  ports:
+  - port: 80
+    targetPort: 8080  # Map external port 80 to internal port 8080
+  selector:
+    app: tomcat
